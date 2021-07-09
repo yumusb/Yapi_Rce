@@ -78,7 +78,8 @@ def main(target):
                 pass
                 print("无回显，或者解码失败")
     except:
-        print("Unexpected error:", sys.exc_info()[0])
-        raise
+        # print("Unexpected error:", sys.exc_info()[0])
+        # raise
+        print("连接超时")
 if __name__ == "__main__":
     main()
